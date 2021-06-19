@@ -97,6 +97,16 @@ public class ElasticSearchProperties {
      */
     private String documentTypeOverride = "";
 
+    /**
+     * Elasticsearch basic auth username
+     */
+    private String username;
+
+    /**
+     * Elasticsearch basic auth password
+     */
+    private String password;
+
     public String getUrl() {
         return url;
     }
@@ -201,14 +211,30 @@ public class ElasticSearchProperties {
         this.documentTypeOverride = documentTypeOverride;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public List<URL> toURLs() {
         String clusterAddress = getUrl();
         String[] hosts = clusterAddress.split(",");
         return Arrays.stream(hosts)
             .map(host ->
-                (host.startsWith("http://") || host.startsWith("https://") || host.startsWith("tcp://"))
+                (host.startsWith("http://") || host.startsWith("https://"))
                     ? toURL(host)
-                    : toURL("tcp://" + host)
+                    : toURL("http://" + host)
             ).collect(Collectors.toList());
     }
 

@@ -12,7 +12,6 @@
  */
 package com.netflix.conductor.es7.dao.index;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;

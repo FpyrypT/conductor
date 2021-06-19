@@ -16,6 +16,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.dao.IndexDAO;
 import com.netflix.conductor.es7.dao.index.ElasticSearchRestDAOV7;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -80,18 +84,25 @@ public class ElasticSearchV7Configuration {
 
     @Bean
     public RestClientBuilder restClientBuilder(ElasticSearchProperties properties) {
-        return RestClient.builder(convertToHttpHosts(properties.toURLs()));
+        RestClientBuilder builder = RestClient.builder(convertToHttpHosts(properties.toURLs()));
+
+        if (properties.getUsername() != null && properties.getPassword() != null) {
+            log.info("Configure ElasticSearch with BASIC authentication. User:{}",properties.getUsername());
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(properties.getUsername(), properties.getPassword()));
+            builder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+        } else {
+            log.info("Configure ElasticSearch with no authentication.");
+        }
+        return builder;
     }
 
     @Bean
     public IndexDAO es7IndexDAO(RestClientBuilder restClientBuilder, ElasticSearchProperties properties,
         ObjectMapper objectMapper) {
         String url = properties.getUrl();
-        if (url.startsWith("http") || url.startsWith("https")) {
-            return new ElasticSearchRestDAOV7(restClientBuilder, properties, objectMapper);
-        } else {
-            throw new RuntimeException("Invalid ES7 url");
-        }
+        return new ElasticSearchRestDAOV7(restClientBuilder, properties, objectMapper);
     }
 
     private HttpHost[] convertToHttpHosts(List<URL> hosts) {

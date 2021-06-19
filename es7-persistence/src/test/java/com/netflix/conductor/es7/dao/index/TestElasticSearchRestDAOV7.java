@@ -12,8 +12,6 @@
  */
 package com.netflix.conductor.es7.dao.index;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.conductor.common.metadata.events.EventExecution;
 import com.netflix.conductor.common.metadata.events.EventHandler;
@@ -24,32 +22,16 @@ import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.run.WorkflowSummary;
 import com.netflix.conductor.core.events.queue.Message;
 import com.netflix.conductor.es7.utils.TestUtils;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-//import com.netflix.conductor.common.utils.JsonMapperProvider;
-//import com.netflix.conductor.elasticsearch.ElasticSearchConfiguration;
-//import com.netflix.conductor.elasticsearch.ElasticSearchRestClientBuilderProvider;
-//import com.netflix.conductor.elasticsearch.EmbeddedElasticSearch;
-//import com.netflix.conductor.elasticsearch.SystemPropertiesElasticSearchConfiguration;
-//import com.netflix.conductor.elasticsearch.es7.EmbeddedElasticSearchV7;
-//import com.netflix.conductor.es7.dao.index.ElasticSearchRestDAOV7;
 
 public class TestElasticSearchRestDAOV7 extends ElasticSearchRestDaoBaseTest {
 
@@ -185,70 +167,6 @@ public class TestElasticSearchRestDAOV7 extends ElasticSearchRestDaoBaseTest {
         assertEquals(summary.getTaskId(), tasks.get(0));
     }
 
-//    @Test
-//    public void indexTaskWithBatchSizeTwo() throws Exception {
-//        embeddedElasticSearch.stop();
-//        startElasticSearchWithBatchSize(2);
-//        String correlationId = "some-correlation-id";
-//
-//        Task task = new Task();
-//        task.setTaskId("some-task-id");
-//        task.setWorkflowInstanceId("some-workflow-instance-id");
-//        task.setTaskType("some-task-type");
-//        task.setStatus(Task.Status.FAILED);
-//        task.setInputData(new HashMap<String, Object>() {{ put("input_key", "input_value"); }});
-//        task.setCorrelationId(correlationId);
-//        task.setTaskDefName("some-task-def-name");
-//        task.setReasonForIncompletion("some-failure-reason");
-//
-//        indexDAO.indexTask(task);
-//        indexDAO.indexTask(task);
-//
-//        await()
-//                .atMost(5, TimeUnit.SECONDS)
-//                .untilAsserted(() -> {
-//                    SearchResult<String> result = indexDAO
-//                            .searchTasks("correlationId='" + correlationId + "'", "*", 0, 10000, null);
-//
-//                    assertTrue("should return 1 or more search results", result.getResults().size() > 0);
-//                    assertEquals("taskId should match the indexed task", "some-task-id", result.getResults().get(0));
-//                });
-//
-//        embeddedElasticSearch.stop();
-//        startElasticSearchWithBatchSize(1);
-//
-//    }
-//
-//    private void startElasticSearchWithBatchSize(int i) throws Exception {
-//        System.setProperty(ElasticSearchConfiguration.ELASTIC_SEARCH_INDEX_BATCH_SIZE_PROPERTY_NAME, String.valueOf(i));
-//
-//        configuration = new SystemPropertiesElasticSearchConfiguration();
-//
-//        String host = configuration.getEmbeddedHost();
-//        int port = configuration.getEmbeddedPort();
-//        String clusterName = configuration.getEmbeddedClusterName();
-//
-//        embeddedElasticSearch = new EmbeddedElasticSearchV7(clusterName, host, port);
-//        embeddedElasticSearch.start();
-//
-//        ElasticSearchRestClientBuilderProvider restClientProvider =
-//                new ElasticSearchRestClientBuilderProvider(configuration);
-//
-//        RestClientBuilder restClientBuilder = restClientProvider.get();
-//        restClient = restClientBuilder.build();
-//
-//        Map<String, String> params = new HashMap<>();
-//        params.put("wait_for_status", "yellow");
-//        params.put("timeout", "30s");
-//
-//        Request request = new Request("GET", "/_cluster/health");
-//        request.addParameters(params);
-//        restClient.performRequest(request);
-//
-//        objectMapper = new JsonMapperProvider().get();
-//        indexDAO = new ElasticSearchRestDAOV7(restClientBuilder, configuration, objectMapper);
-//    }
-
     @Test
     public void shouldIndexTaskAsync() throws Exception {
         Workflow workflow = TestUtils.loadWorkflowSnapshot(objectMapper, "workflow");
@@ -349,9 +267,6 @@ public class TestElasticSearchRestDAOV7 extends ElasticSearchRestDaoBaseTest {
     public void shouldAddIndexPrefixToIndexTemplate() throws Exception {
         String json = TestUtils.loadJsonResource("expected_template_task_log");
         String content = indexDAO.loadTypeMappingSource("/template_task_log.json");
-
-//        JsonNode expectedJson = objectMapper.readTree(json);
-//        JsonNode actual = objectMapper.readTree(content);
 
         assertEquals(json, content);
     }
